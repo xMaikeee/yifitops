@@ -1,0 +1,31 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: #eee;
+    margin: 0;
+    padding: 20px;
+  }
+  
+  #app {
+    max-width: 800px;
+    margin: auto;
+  }
+  
+  input, button {
+    margin-top: 10px;
+    display: block;
+    padding: 8px;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  h1, h2 {
+    color: #00ffcc;
+    margin-top: 20px;
+  }
+  
+  ul {
+    padding-left: 20px;
+  }
+  

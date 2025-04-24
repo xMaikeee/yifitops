@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yifitops Music Player</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <h1>Yifitops Music Player</h1>
+
+    <div id="player-controls"></div>
+
+    <div>
+      <h2>Favorites</h2>
+      <ul id="favorites"></ul>
+    </div>
+
+    <div>
+      <h2>Play History</h2>
+      <ul id="history"></ul>
+    </div>
+
+    <div>
+      <h2>Upload Song</h2>
+      <form id="uploadForm" enctype="multipart/form-data">
+        <input type="text" name="song_name" placeholder="Song Name" required />
+        <input type="file" name="file" required />
+        <button type="submit">Upload</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
