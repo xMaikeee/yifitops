@@ -13,15 +13,16 @@
       window.location = 'index.html';
     };
   
-    // Handle song + cover upload
+    // Handle song + cover upload without manually setting Content-Type
     async function handleUpload(e) {
       e.preventDefault();
       try {
         const form = document.getElementById('uploadForm');
         const fd = new FormData(form);
+        // Do not set Content-Type header explicitly; let browser handle multipart boundary
         const res = await fetch(`${API}/songs/upload`, {
           method: 'POST',
-          headers,
+          headers,  // only Authorization header
           body: fd
         });
         const data = await res.json();
@@ -43,37 +44,43 @@
   
     // Load artist's songs and render with cover image
     async function loadMySongs() {
-      const user = JSON.parse(localStorage.getItem('user'));
-      const res = await fetch(`${API}/songs`, { headers });
-      const songs = await res.json();
-      const grid = document.getElementById('my-songs-grid');
-      grid.className = 'grid';
-      grid.innerHTML = '';
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        const res = await fetch(`${API}/songs`, { headers });
+        const songs = await res.json();
+        console.log('Songs from server:', songs);
+        const grid = document.getElementById('my-songs-grid');
+        grid.className = 'grid';
+        grid.innerHTML = '';
   
-      songs
-        .filter(s => s.artist_id === user.id)
-        .forEach(s => {
-          const card = document.createElement('div');
-          card.className = 'song-card';
-          card.innerHTML = `
-            <h3>${s.song_name}</h3>
-            ${s.image_path ? `<img src="${API}${s.image_path}" class="cover-thumb" alt="Cover for ${s.song_name}"/>` : ''}
-            <audio controls src="${API}${s.file_path}"></audio>
-            <button class="delete-btn" onclick="deleteSong('${s._id}')">Delete</button>
-          `;
-          // Hide broken cover images
-          const img = card.querySelector('img.cover-thumb');
-          if (img) {
-            img.onerror = () => {
-              console.error('Cover load failed:', img.src);
-              img.style.display = 'none';
-            };
-          }
-          grid.appendChild(card);
-        });
+        songs
+          .filter(s => s.artist_id && String(s.artist_id) === user.id)
+          .forEach(s => {
+            const card = document.createElement('div');
+            card.className = 'song-card';
+            card.innerHTML = `
+              <h3>${s.song_name}</h3>
+              ${s.image_path ? `<img src="${API}${s.image_path}" class="cover-thumb" alt="Cover for ${s.song_name}"/>` : ''}
+              <audio controls src="${API}${s.file_path}"></audio>
+              <button class="delete-btn" onclick="deleteSong('${s._id}')">Delete</button>
+            `;
+            const img = card.querySelector('img.cover-thumb');
+            if (img) {
+              img.onerror = () => {
+                console.error('Cover load failed:', img.src);
+                img.style.display = 'none';
+              };
+            }
+            grid.appendChild(card);
+          });
+      } catch (err) {
+        console.error('Error loading songs:', err);
+        const grid = document.getElementById('my-songs-grid');
+        grid.innerHTML = '<p>Error loading songs. Check console.</p>';
+      }
     }
   
-    // Load artist's albums
+    // Load artist's albums (unchanged)
     async function loadAlbums() {
       const user = JSON.parse(localStorage.getItem('user'));
       const res = await fetch(`${API}/albums`, { headers });
