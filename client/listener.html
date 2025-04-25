@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Listener Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="listener-app">
+    <header>
+      <h1>Listener Dashboard</h1>
+      <button id="logoutBtn">Logout</button>
+    </header>
+    <main>
+      <section id="songs-section">
+        <h2>Songs</h2>
+        <div id="songs-grid" class="grid"></div>
+      </section>
+      <section id="favorites-section">
+        <h2>Favorites</h2>
+        <ul id="favorites"></ul>
+      </section>
+      <section id="playlists-section">
+        <h2>My Playlists</h2>
+        <div id="playlists-list"></div>
+      </section>
+      <section id="history-section">
+        <h2>Play History</h2>
+        <div id="history" class="grid"></div>
+      </section>      
+    </main>
+  </div>
+  <script src="listener.js"></script>
+</body>
+</html>

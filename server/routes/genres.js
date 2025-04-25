@@ -1,18 +1,15 @@
-const express = require('express');
-const router = express.Router();
+const expressGenres = require('express');
 const Genre = require('../models/Genre');
+const authGenres = require('../middleware/auth');
+const genreRouter = expressGenres.Router();
 
-// Get all genres
-router.get('/', async (req, res) => {
+genreRouter.use(authGenres);
+genreRouter.get('/', async (req, res) => {
   const genres = await Genre.find();
   res.json(genres);
 });
-
-// Add a new genre
-router.post('/', async (req, res) => {
-  const genre = new Genre(req.body);
-  await genre.save();
+genreRouter.post('/', async (req, res) => {
+  const genre = await Genre.create(req.body);
   res.status(201).json(genre);
 });
-
-module.exports = router;
+module.exports = genreRouter;

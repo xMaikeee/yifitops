@@ -6,7 +6,8 @@ const SongSchema = new mongoose.Schema({
   release_date: Date,
   album_id: mongoose.Schema.Types.ObjectId,
   artist_id: mongoose.Schema.Types.ObjectId,
-  file_path: String // New field to store the file path
+  file_path: String,
+  image_path: String,
 });
 
 module.exports = mongoose.model('Song', SongSchema);

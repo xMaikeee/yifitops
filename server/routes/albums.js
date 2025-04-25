@@ -1,18 +1,15 @@
-const express = require('express');
-const router = express.Router();
+const expressAlbums = require('express');
 const Album = require('../models/Album');
+const authAlbums = require('../middleware/auth');
+const albumRouter = expressAlbums.Router();
 
-// Get all albums
-router.get('/', async (req, res) => {
+albumRouter.use(authAlbums);
+albumRouter.get('/', async (req, res) => {
   const albums = await Album.find();
   res.json(albums);
 });
-
-// Create a new album
-router.post('/', async (req, res) => {
-  const album = new Album(req.body);
-  await album.save();
+albumRouter.post('/', async (req, res) => {
+  const album = await Album.create(req.body);
   res.status(201).json(album);
 });
-
-module.exports = router;
+module.exports = albumRouter;

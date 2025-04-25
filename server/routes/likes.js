@@ -1,18 +1,27 @@
 const express = require('express');
-const router = express.Router();
 const Like = require('../models/Like');
+const auth = require('../middleware/auth');
+const router = express.Router();
 
-// Get liked songs for a specific user
+// Protect all like routes
+router.use(auth);
+
+// Get favorites for a user
 router.get('/:userId', async (req, res) => {
   const likes = await Like.find({ user_id: req.params.userId });
   res.json(likes);
 });
 
-// Like a song
+// Add favorite
 router.post('/', async (req, res) => {
-  const like = new Like(req.body);
-  await like.save();
+  const like = await Like.create(req.body);
   res.status(201).json(like);
+});
+
+// Remove favorite by user and song
+router.delete('/:userId/:songId', async (req, res) => {
+  await Like.deleteOne({ user_id: req.params.userId, song_id: req.params.songId });
+  res.json({ message: 'Favorite removed' });
 });
 
 module.exports = router;

@@ -1,66 +1,66 @@
-const userId = "680a41654d4658c0dfe0a523";
+import { displayAuthForms, hideAuthForms } from './auth.js';
+const API = 'http://localhost:3000';
+let allSongs = [];
+
+async function fetchGenres() {
+  const res = await fetch(`${API}/genres`, authHeader());
+  const genres = await res.json();
+  const filter = document.getElementById('genreFilter');
+  genres.forEach(g => filter.innerHTML += `<option value="${g._id}">${g.name}</option>`);
+}
+
+async function fetchAlbums() {
+  const res = await fetch(`${API}/albums`, authHeader());
+  const albums = await res.json();
+  const filter = document.getElementById('albumFilter');
+  albums.forEach(a => filter.innerHTML += `<option value="${a._id}">${a.name}</option>`);
+}
+
+function authHeader() {
+  const token = localStorage.getItem('token');
+  return token ? { headers: { 'Authorization': `Bearer ${token}` } } : {};
+}
 
 async function loadSongs() {
-    const res = await fetch('http://localhost:3000/songs');
-    const songs = await res.json();
-    const player = document.getElementById('player-controls');
-    player.innerHTML = ''; // Clear existing content
-  
-    songs.forEach(song => {
-      const div = document.createElement('div');
-      div.textContent = `${song.song_name} (${song.length}s)`;
-  
-      // Create an audio element
-      const audio = document.createElement('audio');
-      audio.controls = true;
-      audio.src = `http://localhost:3000${song.file_path}`; // Set the song file URL
-  
-      // Append song and audio player
-      player.appendChild(div);
-      player.appendChild(audio);
-    });
-  }  
-
-async function loadFavorites() {
-  const res = await fetch(`http://localhost:3000/likes/${userId}`);
-  const favorites = await res.json();
-  const favList = document.getElementById('favorites');
-  favList.innerHTML = '';
-  favorites.forEach(fav => {
-    const li = document.createElement('li');
-    li.textContent = `Song ID: ${fav.song_id}`;
-    favList.appendChild(li);
-  });
+  const res = await fetch(`${API}/songs`, authHeader());
+  allSongs = await res.json();
+  renderSongs(allSongs);
 }
 
-async function loadHistory() {
-  const res = await fetch(`http://localhost:3000/history/${userId}`);
-  const history = await res.json();
-  const historyList = document.getElementById('history');
-  historyList.innerHTML = '';
-  history.forEach(record => {
-    const li = document.createElement('li');
-    li.textContent = `Played Song ID: ${record.song_id} on ${new Date(record.playedDate).toLocaleString()}`;
-    historyList.appendChild(li);
-  });
+function renderSongs(songs) {
+  const grid = document.getElementById('songs-grid');
+  grid.innerHTML = songs.map(s => `
+    <div class="song-card">
+      <img src="${API}${s.file_path}" alt="${s.song_name}" />
+      <h3>${s.song_name}</h3>
+      <p>${s.length}s</p>
+      <audio controls src="${API}${s.file_path}"></audio>
+      <button onclick="addToFavorites('${s._id}')">❤</button>
+    </div>`).join('');
 }
 
-async function handleUpload(event) {
-  event.preventDefault();
-  const form = document.getElementById('uploadForm');
-  const formData = new FormData(form);
-  const res = await fetch('http://localhost:3000/songs/upload', {
-    method: 'POST',
-    body: formData
-  });
-  const result = await res.json();
-  alert(`Uploaded: ${result.song_name}`);
-  form.reset();
-  loadSongs();
+document.getElementById('genreFilter').addEventListener('change', e => {
+  const id = e.target.value;
+  renderSongs(id ? allSongs.filter(s => s.genre_id === id) : allSongs);
+});
+
+document.getElementById('albumFilter').addEventListener('change', e => {
+  const id = e.target.value;
+  renderSongs(id ? allSongs.filter(s => s.album_id === id) : allSongs);
+});
+
+// Additional functions for playlists, etc.
+
+async function init() {
+  if (localStorage.getItem('token')) {
+    hideAuthForms();
+    document.getElementById('controls').style.display = 'flex';
+    await fetchGenres();
+    await fetchAlbums();
+    await loadSongs();
+  } else {
+    displayAuthForms();
+  }
 }
 
-document.getElementById('uploadForm').addEventListener('submit', handleUpload);
-
-loadSongs();
-loadFavorites();
-loadHistory();
+init();

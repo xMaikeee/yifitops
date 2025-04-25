@@ -1,18 +1,15 @@
-const express = require('express');
-const router = express.Router();
+const expressHistory = require('express');
 const History = require('../models/History');
+const authHistory = require('../middleware/auth');
+const historyRouter = expressHistory.Router();
 
-// Get play history for a user
-router.get('/:userId', async (req, res) => {
+historyRouter.use(authHistory);
+historyRouter.get('/:userId', async (req, res) => {
   const history = await History.find({ user_id: req.params.userId });
   res.json(history);
 });
-
-// Add a play record
-router.post('/', async (req, res) => {
-  const record = new History(req.body);
-  await record.save();
+historyRouter.post('/', async (req, res) => {
+  const record = await History.create(req.body);
   res.status(201).json(record);
 });
-
-module.exports = router;
+module.exports = historyRouter;

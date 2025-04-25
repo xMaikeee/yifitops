@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artist Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="artist-app">
+    <header>
+      <h1>Artist Dashboard</h1>
+      <button id="logoutBtn">Logout</button>
+    </header>
+    <main>
+        <section id="upload-section">
+            <h2>Upload New Song</h2>
+            <form id="uploadForm" enctype="multipart/form-data">
+              <input type="text" name="song_name" placeholder="Song Name" required />
+              <input type="file" name="file" accept="audio/*" required />
+              <input type="file" name="cover" accept="image/*" />
+              <button type="submit">Upload</button>
+            </form>
+          </section>
+      <section id="my-songs-section">
+        <h2>My Songs</h2>
+        <div id="my-songs-grid" class="grid"></div>
+      </section>
+      <section id="albums-section">
+        <h2>My Albums</h2>
+        <div id="albums-list"></div>
+        <button id="newAlbumBtn">New Album</button>
+      </section>
+    </main>
+  </div>
+  <script src="artist.js"></script>
+</body>
+</html>
