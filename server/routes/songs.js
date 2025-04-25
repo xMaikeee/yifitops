@@ -12,14 +12,14 @@ const router = express.Router();
 const UPLOAD_DIR = path.join(__dirname, '../uploads');
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR);
 
-// Multer setup
+// Multer setup for file & cover
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOAD_DIR),
   filename:   (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
 });
 const upload = multer({ storage });
 
-// Protect all song routes
+// Protect all routes
 router.use(auth);
 
 // GET all songs
@@ -33,7 +33,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST upload + metadata (audio + optional cover)
+// POST upload audio + optional cover
 router.post(
   '/upload',
   upload.fields([
@@ -46,7 +46,7 @@ router.post(
       const audioFile = req.files.file[0];
       const coverFile = req.files.cover?.[0];
 
-      // Extract duration metadata
+      // extract metadata
       const metadata = await musicMetadata.parseFile(audioFile.path);
       const length = Math.round(metadata.format.duration || 0);
 
@@ -62,7 +62,6 @@ router.post(
         file_path,
         image_path
       });
-
       res.status(201).json(newSong);
     } catch (err) {
       console.error('Upload error:', err);
@@ -71,7 +70,33 @@ router.post(
   }
 );
 
-// DELETE a song by ID (remove audio + cover)
+// DELETE multiple songs (bulk delete)
+router.delete('/', async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || !ids.length) {
+      return res.status(400).json({ error: 'No IDs provided' });
+    }
+    const userId = req.user.id;
+    const songs = await Song.find({ _id: { $in: ids }, artist_id: userId });
+    // delete files
+    for (const s of songs) {
+      const audioFull = path.join(UPLOAD_DIR, path.basename(s.file_path));
+      if (fs.existsSync(audioFull)) fs.unlinkSync(audioFull);
+      if (s.image_path) {
+        const coverFull = path.join(UPLOAD_DIR, path.basename(s.image_path));
+        if (fs.existsSync(coverFull)) fs.unlinkSync(coverFull);
+      }
+    }
+    await Song.deleteMany({ _id: { $in: ids }, artist_id: userId });
+    res.json({ message: `${songs.length} songs deleted` });
+  } catch (err) {
+    console.error('Bulk delete error:', err);
+    res.status(500).json({ error: 'Bulk deletion failed' });
+  }
+});
+
+// DELETE single song
 router.delete('/:id', async (req, res) => {
   try {
     const song = await Song.findById(req.params.id);
@@ -79,16 +104,14 @@ router.delete('/:id', async (req, res) => {
     if (song.artist_id.toString() !== req.user.id)
       return res.status(403).json({ error: 'Forbidden' });
 
-    // Remove audio file
+    // remove audio
     const audioFull = path.join(UPLOAD_DIR, path.basename(song.file_path));
     if (fs.existsSync(audioFull)) fs.unlinkSync(audioFull);
-
-    // Remove cover image if present
+    // remove cover
     if (song.image_path) {
       const coverFull = path.join(UPLOAD_DIR, path.basename(song.image_path));
       if (fs.existsSync(coverFull)) fs.unlinkSync(coverFull);
     }
-
     await song.deleteOne();
     res.json({ message: 'Song and cover deleted' });
   } catch (err) {
